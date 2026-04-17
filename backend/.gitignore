@@ -1,0 +1,9 @@
+# Ignore local Python virtual environment artifacts
+Include/
+Lib/
+Scripts/
+pyvenv.cfg
+__pycache__/
+
+# Optional local database file
+students.db
