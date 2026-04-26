@@ -86,6 +86,49 @@ body {
   font-weight: 500;
 }
 
+.suggestions-panel {
+  border: 1px solid #d7dee9;
+  border-radius: 0.8rem;
+  background: #ffffff;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.suggestion-item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 0;
+  border-bottom: 1px solid #edf2f7;
+  background: transparent;
+  padding: 0.68rem 0.78rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.suggestion-item:hover {
+  background: #f8fafc;
+}
+
+.suggestions-panel li:last-child .suggestion-item {
+  border-bottom: 0;
+}
+
+.suggestion-id {
+  color: #0f766e;
+  font-weight: 700;
+}
+
+.suggestion-name {
+  color: #0f172a;
+}
+
+.suggestion-muted {
+  padding: 0.68rem 0.78rem;
+  color: #475569;
+}
+
 .animate-fade-in {
   animation: fadeInUp 420ms ease both;
 }

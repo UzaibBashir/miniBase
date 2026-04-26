@@ -48,18 +48,35 @@ export default function Home() {
   }, [enroll]);
 
   const searchStudent = async () => {
-    if (!enroll) return;
+    const query = enroll.trim();
+    if (!query) return;
 
     setLoading(true);
     setShowMatches(false);
     setResult("");
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/students/${enroll}`);
+      const res = await fetch(
+        `http://127.0.0.1:8000/students?q=${encodeURIComponent(query)}&limit=20`
+      );
       const data = await res.json();
+      const list = Array.isArray(data.matches) ? data.matches : [];
 
-      if (data.name) {
-        setResult(data.name);
+      let selected = null;
+
+      if (/^\d+$/.test(query)) {
+        selected = list.find((item) => String(item.id) === query) || list[0] || null;
+      } else {
+        const loweredQuery = query.toLowerCase();
+        selected =
+          list.find((item) => item.name.toLowerCase() === loweredQuery) ||
+          list.find((item) => item.name.toLowerCase().includes(loweredQuery)) ||
+          list[0] ||
+          null;
+      }
+
+      if (selected) {
+        setResult(`${selected.name} (${selected.id})`);
       } else {
         setResult("Student not found");
       }
@@ -92,8 +109,8 @@ export default function Home() {
 
           <input
             id="enroll"
-            type="number"
-            placeholder="e.g. 230101"
+            type="text"
+            placeholder="e.g. 230101 or Uzaib"
             value={enroll}
             onChange={(e) => {
               setEnroll(e.target.value);
@@ -138,10 +155,6 @@ export default function Home() {
               )}
             </ul>
           )}
-
-          <button onClick={searchStudent} className="search-btn" disabled={loading}>
-            {loading ? "Searching..." : "Search Student"}
-          </button>
         </div>
 
         <div className="mt-6 result-panel" aria-live="polite">
