@@ -1,9 +1,14 @@
+from pathlib import Path
+
 from sqlalchemy import create_engine
 
-# Keep paths direct and simple for beginners.
-engine = create_engine("sqlite:///students.db")
+BASE_DIR = Path(__file__).resolve().parent
+DB_PATH = BASE_DIR / "students.db"
+SQL_PATH = BASE_DIR / "data.sql"
 
-with open("data.sql", "r") as f:
+engine = create_engine(f"sqlite:///{DB_PATH.as_posix()}")
+
+with open(SQL_PATH, "r", encoding="utf-8") as f:
     sql_commands = f.read().split(";")  # split statements
 
 with engine.begin() as connection:

@@ -1,15 +1,57 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const [enroll, setEnroll] = useState("");
   const [result, setResult] = useState("");
+  const [matches, setMatches] = useState([]);
+  const [loadingMatches, setLoadingMatches] = useState(false);
+  const [showMatches, setShowMatches] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const typedValue = enroll.trim();
+
+    if (!typedValue) {
+      setMatches([]);
+      setShowMatches(false);
+      setLoadingMatches(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      setLoadingMatches(true);
+
+      try {
+        const res = await fetch(
+          `http://127.0.0.1:8000/students?q=${encodeURIComponent(typedValue)}&limit=7`,
+          { signal: controller.signal }
+        );
+
+        const data = await res.json();
+        setMatches(Array.isArray(data.matches) ? data.matches : []);
+        setShowMatches(true);
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          setMatches([]);
+        }
+      } finally {
+        setLoadingMatches(false);
+      }
+    }, 180);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [enroll]);
 
   const searchStudent = async () => {
     if (!enroll) return;
 
     setLoading(true);
+    setShowMatches(false);
     setResult("");
 
     try {
@@ -53,7 +95,15 @@ export default function Home() {
             type="number"
             placeholder="e.g. 230101"
             value={enroll}
-            onChange={(e) => setEnroll(e.target.value)}
+            onChange={(e) => {
+              setEnroll(e.target.value);
+              setResult("");
+            }}
+            onFocus={() => {
+              if (enroll.trim()) {
+                setShowMatches(true);
+              }
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 searchStudent();
@@ -61,6 +111,33 @@ export default function Home() {
             }}
             className="field-input"
           />
+
+          {showMatches && (
+            <ul className="suggestions-panel" aria-label="Matching students">
+              {loadingMatches ? (
+                <li className="suggestion-muted">Looking for matches...</li>
+              ) : matches.length > 0 ? (
+                matches.map((match) => (
+                  <li key={match.id}>
+                    <button
+                      type="button"
+                      className="suggestion-item"
+                      onClick={() => {
+                        setEnroll(String(match.id));
+                        setResult(match.name);
+                        setShowMatches(false);
+                      }}
+                    >
+                      <span className="suggestion-id">{match.id}</span>
+                      <span className="suggestion-name">{match.name}</span>
+                    </button>
+                  </li>
+                ))
+              ) : (
+                <li className="suggestion-muted">No matches found.</li>
+              )}
+            </ul>
+          )}
 
           <button onClick={searchStudent} className="search-btn" disabled={loading}>
             {loading ? "Searching..." : "Search Student"}
